@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="es-CL">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="no-referrer">
+<meta name="theme-color" content="#86bc25">
+<meta name="apple-mobile-web-app-title" content="Mantención C&amp;C">
+<title>Mantención C&amp;C</title>
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icono-192.png">
+<style>
+  *{box-sizing:border-box}
+  html{background:#86bc25}
+  body{margin:0;min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    padding:max(24px,env(safe-area-inset-top)) 20px max(24px,env(safe-area-inset-bottom));
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;color:#10190a;text-align:center}
+  main{width:100%;max-width:420px}
+  img{width:128px;height:128px;border-radius:28px;box-shadow:0 10px 28px rgba(16,25,10,.35)}
+  .marca{margin:22px 0 2px;font-size:1rem;font-weight:700;letter-spacing:.14em}
+  h1{margin:0 0 28px;font-size:1.65rem;line-height:1.2}
+  .boton{display:block;width:100%;padding:18px 16px;border-radius:14px;background:#10190a;color:#fff;font-size:1.2rem;font-weight:700;text-decoration:none}
+  .boton:active{background:#2c4115}
+  .boton:focus-visible{outline:3px solid #fff;outline-offset:3px}
+  .caja{margin-top:24px;padding:16px;border-radius:14px;background:#fff;text-align:left;font-size:1rem;line-height:1.5}
+  .caja h2{margin:0 0 6px;font-size:1.05rem}
+  .caja p{margin:6px 0 0}
+  [hidden]{display:none !important}
+</style>
+</head>
+<body>
+<main>
+  <img src="icono-512.png" alt="" width="128" height="128">
+  <p class="marca">ISERMA</p>
+  <h1>Gestión Mantención C&amp;C</h1>
+
+  <a id="abrir" class="boton" rel="noreferrer" hidden>Abrir la aplicación</a>
+
+  <section id="instrucciones" class="caja" hidden>
+    <h2>Para dejar el icono en su teléfono</h2>
+    <p><b>iPhone o iPad (Safari):</b> toque <b>Compartir</b> y luego <b>Agregar a inicio</b>.</p>
+    <p><b>Android (Chrome):</b> toque el menú <b>⋮</b> y luego <b>Agregar a la pantalla principal</b>.</p>
+  </section>
+
+  <section id="aviso" class="caja" role="alert" hidden>
+    <h2>Falta el código de la aplicación</h2>
+    <p>Abra esta página escaneando el código QR de la aplicación. Si no lo tiene, pídalo al Coordinador.</p>
+  </section>
+
+  <noscript><p class="caja">Active JavaScript en el navegador para continuar.</p></noscript>
+</main>
+<script>
+(function(){
+  // El código de la aplicación llega en el enlace (después de #) y no está escrito aquí: solo se guarda su huella,
+  // para que esta página no sirva para dirigir a ninguna otra.
+  var HUELLA="2fc04238ac2c8fd507e65e5c0507f7fc96806823eebb6f4e52ca54a80770f7ad";
+  var CLAVE="mantencion-cyc-codigo";
+  function ver(id){document.getElementById(id).hidden=false}
+  function ocultar(){["abrir","instrucciones","aviso"].forEach(function(i){document.getElementById(i).hidden=true})}
+  function huella(t){
+    return crypto.subtle.digest("SHA-256",new TextEncoder().encode(t)).then(function(b){
+      return Array.prototype.map.call(new Uint8Array(b),function(x){return ("0"+x.toString(16)).slice(-2)}).join("");
+    });
+  }
+  function valido(c){
+    if(!/^[A-Za-z0-9_-]{20,200}$/.test(c))return Promise.resolve(false);
+    return huella(c).then(function(h){return h===HUELLA},function(){return false});
+  }
+  function guardado(){try{return localStorage.getItem(CLAVE)||""}catch(e){return ""}}
+  function guardar(c){try{localStorage.setItem(CLAVE,c)}catch(e){}}
+  function mostrar(c){
+    ocultar();
+    document.getElementById("abrir").href="https://script.google.com/macros/s/"+c+"/exec";
+    ver("abrir");
+    if(!navigator.standalone)ver("instrucciones");
+  }
+  function iniciar(){
+    var enlace=location.hash.slice(1);
+    valido(enlace).then(function(ok){
+      if(ok){guardar(enlace);mostrar(enlace);return}
+      // Sin código en el enlace (o dañado): sirve el que este teléfono ya había abierto
+      var antes=guardado();
+      return valido(antes).then(function(sirve){
+        if(sirve){mostrar(antes);return}
+        ocultar();document.getElementById("abrir").removeAttribute("href");ver("aviso");
+      });
+    });
+  }
+  window.addEventListener("hashchange",iniciar);
+  iniciar();
+})();
+</script>
+</body>
+</html>
